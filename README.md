@@ -101,6 +101,17 @@ Get-Content logs\reminder.log -Tail 50 -Wait
 
 ## 高级配置
 
+### 多账户推送
+
+支持同时向多个微信账户推送消息，只需在 `config.ini` 中添加多个 SendKey，用逗号分隔：
+
+```ini
+[serverchan]
+sckey = 你的第一个SendKey, 你的第二个SendKey, 你的第三个SendKey
+```
+
+推送时会自动向所有账户发送，日志中会显示成功发送的数量。
+
 ### 修改珍贵道具列表
 
 打开 `config.py`，找到 `PRECIOUS_ITEMS` 列表：

@@ -43,7 +43,10 @@ class Config:
         ]
         
         # Server 酱配置
-        self.SCKEY = config.get('serverchan', 'sckey', fallback='')
+        sckey_raw = config.get('serverchan', 'sckey', fallback='')
+        # 支持多个 SendKey（逗号分隔）
+        self.SCKEYS = [s.strip() for s in sckey_raw.split(',') if s.strip()]
+        self.SCKEY = self.SCKEYS[0] if self.SCKEYS else ''
         self.PUSH_URL = "https://sctapi.ftqq.com/{skey}.send"
         
         # 日志配置
