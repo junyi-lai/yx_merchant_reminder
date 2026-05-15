@@ -38,9 +38,6 @@ logs/
 *.db
 data/
 
-# Configuration (user chose to upload config.ini)
-# config.ini
-
 # OS
 .DS_Store
 Thumbs.db

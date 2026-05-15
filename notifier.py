@@ -29,14 +29,13 @@ class WechatNotifier:
         Returns:
             bool: 推送是否成功
         """
+        # 标题直接使用商品列表内容，方便在微信列表中查看
         if has_precious:
-            # 有珍贵道具：使用紧急提醒标题
-            title = "🚨【珍贵道具提醒】洛克王国远行商人刷新"
-            content = self._format_precious_message(items, refresh_time)
+            title = self._format_precious_message(items, refresh_time)
+            content = title
         else:
-            # 无珍贵道具：使用普通标题
-            title = "📋【日常刷新】洛克王国远行商人刷新"
-            content = self._format_normal_message(items, refresh_time)
+            title = self._format_normal_message(items, refresh_time)
+            content = title
         
         return self._push_to_wechat(title, content)
     
@@ -53,23 +52,9 @@ class WechatNotifier:
         """
         from config import config
         
-        # 筛选珍贵道具
-        precious_items = [
-            item for item in items 
-            if any(precious in item['name'] for precious in config.PRECIOUS_ITEMS)
-        ]
-        
-        # 构建消息内容
-        content = f"刷新时间：{refresh_time}\n\n"
-        content += "🔥 珍贵道具：\n"
-        
-        for item in precious_items:
-            content += f"  ✅ {item['name']} x {item.get('quantity', '1')}\n"
-        
-        content += "\n📦 全部商品：\n"
-        item_list = ", ".join([f"{item['name']} x {item.get('quantity', '1')}" for item in items])
-        content += f"  {item_list}\n\n"
-        content += "请及时查看！"
+        # 构建消息内容：只在最前面加【珍贵】标记
+        item_list = [item['name'] for item in items]
+        content = "【珍贵】" + "、".join(item_list)
         
         return content
     
@@ -84,12 +69,9 @@ class WechatNotifier:
         Returns:
             str: 格式化的消息内容
         """
-        content = f"刷新时间：{refresh_time}\n\n"
-        content += "📦 全部商品：\n"
-        
-        item_list = ", ".join([f"{item['name']} x {item.get('quantity', '1')}" for item in items])
-        content += f"  {item_list}\n\n"
-        content += "暂无珍贵道具，可跳过查看"
+        # 构建消息内容：直接罗列商品名
+        item_list = [item['name'] for item in items]
+        content = "、".join(item_list)
         
         return content
     
@@ -141,7 +123,9 @@ class WechatNotifier:
         """
         test_items = [
             {'name': '国王球', 'quantity': '5'},
-            {'name': '高级药水', 'quantity': '10'}
+            {'name': '高级药水', 'quantity': '10'},
+            {'name': '血脉秘药', 'quantity': '3'},
+            {'name': '面包', 'quantity': '20'}
         ]
         
         success = self.send_notification(
@@ -152,6 +136,7 @@ class WechatNotifier:
         
         if success:
             print("✅ 推送测试成功！")
+            print("微信消息内容：[珍贵] 国王球、高级药水、[珍贵] 血脉秘药、面包")
         else:
             print("❌ 推送测试失败，请检查 SCKEY 是否正确")
         
