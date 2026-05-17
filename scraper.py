@@ -27,7 +27,7 @@ class MerchantScraper:
         Returns:
             dict: 包含商品列表和刷新时间的字典
             {
-                'items': [{'name': '商品名', 'quantity': '数量'}, ...],
+                'items': [{'name': '商品名'}, ...],
                 'refresh_time': '刷新时间'
             }
         """
@@ -82,7 +82,7 @@ class MerchantScraper:
             data: API 返回的 JSON 数据
             
         Returns:
-            list: 商品列表 [{'name': '商品名', 'quantity': '数量'}, ...]
+            list: 商品列表 [{'name': '商品名'}, ...]
         """
         items = []
         
@@ -91,15 +91,13 @@ class MerchantScraper:
             for item_detail in data['itemDetails']:
                 items.append({
                     'name': item_detail.get('name', ''),
-                    'quantity': '1',  # API 未提供数量，默认为 1
                     'icon_url': item_detail.get('icon_url', '')
                 })
         # 回退到 items（只有商品名）
         elif 'items' in data and data['items']:
             for item_name in data['items']:
                 items.append({
-                    'name': item_name,
-                    'quantity': '1'
+                    'name': item_name
                 })
         
         return items
@@ -142,7 +140,7 @@ def test_scraper():
     print(f"商品数量：{len(result.get('items', []))}")
     print("\n商品列表：")
     for item in result.get('items', []):
-        print(f"  - {item['name']} x {item.get('quantity', '1')}")
+        print(f"  - {item['name']}")
     print("=" * 50)
     
     return result

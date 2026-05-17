@@ -132,7 +132,7 @@ class MerchantScheduler:
         logger.info("商品列表：")
         for item in items:
             precious_mark = "🔥" if any(p in item['name'] for p in config.PRECIOUS_ITEMS) else "  "
-            logger.info(f"  {precious_mark} {item['name']} x {item.get('quantity', '1')}")
+            logger.info(f"  {precious_mark} {item['name']}")
     
     def start(self):
         """启动调度器"""

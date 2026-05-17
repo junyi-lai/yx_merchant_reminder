@@ -4,7 +4,7 @@
 
 ## 功能特点
 
-- ✅ **自动检测**：每天在刷新后 2 分钟自动检测（08:02, 12:02, 16:02, 20:02）
+- ✅ **自动检测**：每天在刷新后 5 分钟自动检测（08:05, 12:05, 16:05, 20:05）
 - ✅ **微信推送**：通过 Server 酱推送到微信
 - ✅ **珍贵道具提醒**：检测到珍贵道具时特殊标记
 - ✅ **去重机制**：同一批货物只推送一次
@@ -50,10 +50,10 @@ python main.py
 
 1. **立即检测一次**当前商人商品
 2. 之后在以下时间自动检测：
-   - 08:02（检测 8:00 刷新）
-   - 12:02（检测 12:00 刷新）
-   - 16:02（检测 16:00 刷新）
-   - 20:02（检测 20:00 刷新）
+   - 08:05（检测 8:00 刷新）
+   - 12:05（检测 12:00 刷新）
+   - 16:05（检测 16:00 刷新）
+   - 20:05（检测 20:00 刷新）
 
 ---
 
@@ -70,14 +70,14 @@ python main.py
 
 ## 珍贵道具列表
 
-默认珍贵道具：
+默认珍贵道具（按代码配置顺序）：
 
 - 国王球
 - 棱镜球
+- 祝福项坠
 - 炫彩精灵蛋
 - 奇异血脉秘药
-- 祝福项坠
-- 血脉秘药（包含各种血脉秘药）
+- 首领血脉秘药
 
 ---
 
@@ -86,6 +86,11 @@ python main.py
 ### 查看日志
 
 日志文件位置：`logs/reminder.log`
+
+日志文件会自动轮转：
+- 单个文件最大：5MB
+- 保留备份数：3 个（总大小约 15MB）
+- 日志文件：`logs/reminder.log`、`logs/reminder.log.1`、`logs/reminder.log.2`、`logs/reminder.log.3`
 
 实时查看日志（Windows PowerShell）：
 
@@ -114,15 +119,15 @@ sckey = 你的第一个SendKey, 你的第二个SendKey, 你的第三个SendKey
 
 ### 修改珍贵道具列表
 
-打开 `config.py`，找到 `PRECIOUS_ITEMS` 列表：
+打开 `config.py`，找到 `PRECIOUS_ITEMS` 列表：self.PRECIOUS_ITEMS = [
 
 ```python
-self.PRECIOUS_ITEMS = [
     "国王球",
     "棱镜球",
-    "炫彩精灵蛋",
-    "血脉秘药",
     "祝福项坠",
+    "炫彩精灵蛋",
+    "奇异血脉秘药",
+    "首领血脉秘药",  
 ]
 ```
 
@@ -134,10 +139,10 @@ self.PRECIOUS_ITEMS = [
 
 ```python
 self.CHECK_TIMES = [
-    {"hour": 8, "minute": 2},
-    {"hour": 12, "minute": 2},
-    {"hour": 16, "minute": 2},
-    {"hour": 20, "minute": 2},
+    {"hour": 8, "minute": 5},
+    {"hour": 12, "minute": 5},
+    {"hour": 16, "minute": 5},
+    {"hour": 20, "minute": 5},
 ]
 ```
 
@@ -145,38 +150,24 @@ self.CHECK_TIMES = [
 
 ### 修改日志清理周期
 
+日志文件会自动轮转（最大 5MB，保留 3 个备份），但数据库推送记录需要手动清理。
+
 打开 `database.py`，找到 `clear_old_records` 方法：
 
 ```python
 def clear_old_records(self, days=3):  # 修改这里的数字
 ```
 
-默认保留 3 天的记录。
+参数说明：
+- `days=3`：保留最近 3 天的推送记录
+- 该方法需要手动调用，或可自行添加定时清理任务
 
----
-
-## 开机自启动（可选）
-
-### Windows 任务计划程序
-
-1. 按 `Win + S`，搜索"任务计划程序"
-2. 点击"创建基本任务"
-3. 名称：输入"洛克王国商人提醒"
-4. 触发器：选择"计算机启动时"
-5. 操作：选择"启动程序"
-6. 程序：填写 Python 路径，例如：
-   ```
-   D:\Python\Python311\pythonw.exe
-   ```
-7. 参数：填写
-   ```
-   main.py
-   ```
-8. 起始于：填写项目路径，例如：
-   ```
-   E:\yx_merchant_reminder
-   ```
-9. 点击"完成"
+调用方法（Python 交互式）：
+```python
+from database import MerchantDatabase
+db = MerchantDatabase()
+db.clear_old_records(days=7)  # 清理 7 天前的记录，保留 7 天
+```
 
 ---
 
@@ -232,18 +223,22 @@ def clear_old_records(self, days=3):  # 修改这里的数字
 
 ```
 yx_merchant_reminder/
-── main.py              # 主程序入口
-── config.py            # 配置管理
+├── main.py              # 主程序入口
+├── config.py            # 配置管理
 ├── config.ini           # 配置文件
 ├── scraper.py           # API 抓取模块
 ├── notifier.py          # 微信推送模块
 ├── database.py          # 数据库模块
 ├── scheduler.py         # 定时任务模块
 ├── requirements.txt     # Python 依赖
-├── logs/                # 日志文件夹
-│   └── reminder.log
-── data/                # 数据文件夹
-    ── merchant.db
+├── README.md            # 项目说明文档
+└── .gitignore           # Git 忽略文件配置
+
+# 运行时自动创建（无需手动创建）
+├── logs/                # 日志文件夹（运行时自动创建）
+│   └── reminder.log     # 运行日志
+└── data/                # 数据文件夹（运行时自动创建）
+    └── merchant.db      # SQLite 数据库
 ```
 
 ---

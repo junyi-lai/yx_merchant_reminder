@@ -12,10 +12,44 @@ logger = logging.getLogger(__name__)
 
 class WechatNotifier:
     """微信推送通知类"""
-    
+
+    # 名称简化映射
+    NAME_REPLACEMENTS = {
+        '炫彩精灵蛋': '炫彩蛋',
+        '神奇的蛋': '神奇蛋',
+        '黑晶琉璃': '黑矿',
+        '黄石榴石': '黄矿',
+        '蓝晶碧玺': '蓝矿',
+        '紫晶碧玺': '紫矿',
+    }
+
     def __init__(self):
         self.sckeys = config.SCKEYS
         self.push_url_template = config.PUSH_URL
+
+    def _simplify_name(self, name):
+        """
+        简化道具名称
+
+        Args:
+            name: 原始道具名称
+
+        Returns:
+            str: 简化后的名称
+        """
+        # 1. 精确匹配替换
+        if name in self.NAME_REPLACEMENTS:
+            return self.NAME_REPLACEMENTS[name]
+
+        # 2. xxx血脉秘药 → xxx药
+        if '血脉秘药' in name:
+            return name.replace('血脉秘药', '药')
+
+        # 3. xxx粉尘 → xxx粉
+        if name.endswith('粉尘'):
+            return name[:-2] + '粉'
+
+        return name
     
     def _push_single(self, sckey, title, content):
         """向单个账户推送消息"""
@@ -47,60 +81,43 @@ class WechatNotifier:
     def send_notification(self, items, refresh_time, has_precious):
         """
         发送微信通知
-        
+
         Args:
             items: 商品列表 [{'name': '商品名', 'quantity': '数量'}, ...]
             refresh_time: 刷新时间字符串
             has_precious: 是否有珍贵道具 (bool)
-            
+
         Returns:
             bool: 推送是否成功
         """
-        # 标题直接使用商品列表内容，方便在微信列表中查看
         if has_precious:
-            title = self._format_precious_message(items, refresh_time)
-            content = title
+            # 有珍贵道具时，发送两条消息
+            # 第1条：普通道具罗列
+            normal_items = [item for item in items
+                          if not any(p in item['name'] for p in config.PRECIOUS_ITEMS)]
+            normal_simple = [self._simplify_name(item['name']) for item in normal_items]
+            normal_full = [item['name'] for item in normal_items]
+            title1 = "、".join(normal_simple) if normal_simple else "无普通道具"
+            content1 = "、".join(normal_full) if normal_full else "无普通道具"
+
+            # 第2条：珍贵道具罗列
+            precious_items = [item for item in items
+                             if any(p in item['name'] for p in config.PRECIOUS_ITEMS)]
+            precious_simple = [self._simplify_name(item['name']) for item in precious_items]
+            precious_full = [item['name'] for item in precious_items]
+            title2 = "【珍贵】" + "、".join(precious_simple)
+            content2 = "、".join(precious_full)
+
+            success1 = self._push_to_wechat(title1, content1)
+            success2 = self._push_to_wechat(title2, content2)
+            return success1 and success2
         else:
-            title = self._format_normal_message(items, refresh_time)
-            content = title
-        
-        return self._push_to_wechat(title, content)
-    
-    def _format_precious_message(self, items, refresh_time):
-        """
-        格式化珍贵道具消息
-        
-        Args:
-            items: 商品列表
-            refresh_time: 刷新时间
-            
-        Returns:
-            str: 格式化的消息内容
-        """
-        from config import config
-        
-        # 构建消息内容：只在最前面加【珍贵】标记
-        item_list = [item['name'] for item in items]
-        content = "【珍贵】" + "、".join(item_list)
-        
-        return content
-    
-    def _format_normal_message(self, items, refresh_time):
-        """
-        格式化普通消息
-        
-        Args:
-            items: 商品列表
-            refresh_time: 刷新时间
-            
-        Returns:
-            str: 格式化的消息内容
-        """
-        # 构建消息内容：直接罗列商品名
-        item_list = [item['name'] for item in items]
-        content = "、".join(item_list)
-        
-        return content
+            # 无珍贵道具时，发送一条消息
+            simple_names = [self._simplify_name(item['name']) for item in items]
+            full_names = [item['name'] for item in items]
+            title = "、".join(simple_names)
+            content = "、".join(full_names)
+            return self._push_to_wechat(title, content)
     
     def _push_to_wechat(self, title, content):
         """
@@ -140,10 +157,11 @@ class WechatNotifier:
             bool: 测试是否成功
         """
         test_items = [
-            {'name': '国王球', 'quantity': '5'},
-            {'name': '高级药水', 'quantity': '10'},
-            {'name': '血脉秘药', 'quantity': '3'},
-            {'name': '面包', 'quantity': '20'}
+            {'name': '冰系粉尘'},
+            {'name': '黑晶琉璃'},
+            {'name': '虫系血脉秘药'},
+            {'name': '光合球'},
+            {'name': '炫彩精灵蛋'},
         ]
         
         success = self.send_notification(
@@ -153,8 +171,7 @@ class WechatNotifier:
         )
         
         if success:
-            print("✅ 推送测试成功！")
-            print("微信消息内容：[珍贵] 国王球、高级药水、[珍贵] 血脉秘药、面包")
+            print("[OK] 推送测试成功！")
         else:
             print("❌ 推送测试失败，请检查 SCKEY 是否正确")
         

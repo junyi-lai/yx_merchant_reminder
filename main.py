@@ -86,7 +86,7 @@ def run_manual_check():
         logging.info("商品列表：")
         for item in result['items']:
             precious_mark = "🔥" if any(p in item['name'] for p in config.PRECIOUS_ITEMS) else "  "
-            logging.info(f"  {precious_mark} {item['name']} x {item.get('quantity', '1')}")
+            logging.info(f"  {precious_mark} {item['name']}")
         logging.info("=" * 60)
         
         return 0

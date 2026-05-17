@@ -24,22 +24,23 @@ class Config:
         self.REQUEST_TIMEOUT = config.getint('website', 'timeout', fallback=10)
         self.MAX_RETRIES = config.getint('website', 'max_retries', fallback=3)
         
-        # 检测时间配置（刷新后 2 分钟检测）
+        # 检测时间配置（刷新后 5 分钟检测）
         # 远行商人刷新时间：8:00, 12:00, 16:00, 20:00
         self.CHECK_TIMES = [
-            {"hour": 8, "minute": 2},
-            {"hour": 12, "minute": 2},
-            {"hour": 16, "minute": 2},
-            {"hour": 20, "minute": 2},
+            {"hour": 8, "minute": 5},
+            {"hour": 12, "minute": 5},
+            {"hour": 16, "minute": 5},
+            {"hour": 20, "minute": 5},
         ]
         
         # 珍贵道具列表
         self.PRECIOUS_ITEMS = [
             "国王球",
             "棱镜球",
-            "炫彩精灵蛋",
             "祝福项坠",
-            "血脉秘药",  # 包含各种血脉秘药（恶系血脉秘药、水系血脉秘药等）
+            "炫彩精灵蛋",
+            "奇异血脉秘药", 
+            "首领血脉秘药",
         ]
         
         # Server 酱配置

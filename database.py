@@ -125,7 +125,7 @@ class MerchantDatabase:
         """
         # 排序后转换，确保相同商品生成相同的文本
         sorted_items = sorted(items, key=lambda x: x['name'])
-        return "|".join([f"{item['name']}x{item.get('quantity', '1')}" for item in sorted_items])
+        return "|".join([item['name'] for item in sorted_items])
     
     def get_recent_pushes(self, days=7):
         """
