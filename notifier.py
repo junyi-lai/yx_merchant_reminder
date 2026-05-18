@@ -176,6 +176,32 @@ class WechatNotifier:
             print("❌ 推送测试失败，请检查 SCKEY 是否正确")
         
         return success
+    
+    def send_notification_to_first_sckey(self, title, content):
+        """
+        仅向第一个 SCKEY 发送通知（用于失败通知）
+        
+        Args:
+            title: 消息标题
+            content: 消息内容
+            
+        Returns:
+            bool: 推送是否成功
+        """
+        if not self.sckeys:
+            logger.error("没有配置任何 SCKEY")
+            return False
+        
+        first_sckey = self.sckeys[0]
+        logger.info(f"正在向管理员发送通知：{title}")
+        
+        success = self._push_single(first_sckey, title, content)
+        if success:
+            logger.info("管理员通知发送成功")
+        else:
+            logger.error("管理员通知发送失败")
+        
+        return success
 
 
 def test_notifier():
