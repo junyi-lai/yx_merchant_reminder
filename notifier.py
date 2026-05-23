@@ -90,34 +90,16 @@ class WechatNotifier:
         Returns:
             bool: 推送是否成功
         """
+        simple_names = [self._simplify_name(item['name']) for item in items]
+        full_names = [item['name'] for item in items]
+        title = "、".join(simple_names)
+        content = "、".join(full_names)
+        
+        # 如果有珍贵道具，在标题前添加【!】标签
         if has_precious:
-            # 有珍贵道具时，发送两条消息
-            # 第1条：普通道具罗列
-            normal_items = [item for item in items
-                          if not any(p in item['name'] for p in config.PRECIOUS_ITEMS)]
-            normal_simple = [self._simplify_name(item['name']) for item in normal_items]
-            normal_full = [item['name'] for item in normal_items]
-            title1 = "、".join(normal_simple) if normal_simple else "无普通道具"
-            content1 = "、".join(normal_full) if normal_full else "无普通道具"
-
-            # 第2条：珍贵道具罗列
-            precious_items = [item for item in items
-                             if any(p in item['name'] for p in config.PRECIOUS_ITEMS)]
-            precious_simple = [self._simplify_name(item['name']) for item in precious_items]
-            precious_full = [item['name'] for item in precious_items]
-            title2 = "【珍贵】" + "、".join(precious_simple)
-            content2 = "、".join(precious_full)
-
-            success1 = self._push_to_wechat(title1, content1)
-            success2 = self._push_to_wechat(title2, content2)
-            return success1 and success2
-        else:
-            # 无珍贵道具时，发送一条消息
-            simple_names = [self._simplify_name(item['name']) for item in items]
-            full_names = [item['name'] for item in items]
-            title = "、".join(simple_names)
-            content = "、".join(full_names)
-            return self._push_to_wechat(title, content)
+            title = "【!】" + title
+        
+        return self._push_to_wechat(title, content)
     
     def _push_to_wechat(self, title, content):
         """
