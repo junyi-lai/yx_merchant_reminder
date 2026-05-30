@@ -94,16 +94,41 @@ class WechatNotifier:
         Returns:
             bool: 推送是否成功
         """
-        simple_names = [self._simplify_name(item['name']) for item in items]
-        full_names = [item['name'] for item in items]
+        if has_precious:
+            sorted_items = self._sort_items_by_precious(items)
+        else:
+            sorted_items = items
+        
+        simple_names = [self._simplify_name(item['name']) for item in sorted_items]
+        full_names = [item['name'] for item in sorted_items]
         title = "、".join(simple_names)
         content = "、".join(full_names)
         
-        # 如果有珍贵道具，在标题前添加【!】标签
         if has_precious:
             title = "【!】" + title
         
         return self._push_to_wechat(title, content)
+    
+    def _sort_items_by_precious(self, items):
+        """
+        按照珍贵道具列表顺序对商品进行排序，珍贵道具在前
+        
+        Args:
+            items: 商品列表
+            
+        Returns:
+            list: 排序后的商品列表
+        """
+        precious_items = config.PRECIOUS_ITEMS
+        precious_item_map = {item['name']: item for item in items if item['name'] in precious_items}
+        normal_items = [item for item in items if item['name'] not in precious_items]
+        
+        sorted_precious = []
+        for precious_name in precious_items:
+            if precious_name in precious_item_map:
+                sorted_precious.append(precious_item_map[precious_name])
+        
+        return sorted_precious + normal_items
     
     def _push_to_wechat(self, title, content):
         """
